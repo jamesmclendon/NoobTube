@@ -1,0 +1,18 @@
+@media(max-width:767px){
+  .container input,
+  .container select {
+    font-size: 16px;
+  }
+}
+
+[data-ng-click] {
+  cursor: pointer;
+}
+#results .media:hover {
+  background-color: #eee;
+}
+.row {
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+.media { padding: 1em; }
