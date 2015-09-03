@@ -50,7 +50,6 @@ app.service('VideosService', ['$cookies', '$window', '$log', function ($cookies,
     };
 
     this.createPlayer = function () {
-        $log.info('Creating a new Youtube player for DOM id ' + youtube.playerId + ' and video ' + youtube.videoId);
         return new YT.Player(youtube.playerId, {
             playerVars: {
                 rel: 0,
@@ -86,26 +85,34 @@ app.service('VideosService', ['$cookies', '$window', '$log', function ($cookies,
     this.listResults = function (data) {
         results.length = 0;
         data.items.forEach(function (item) {
+            // sometimes channelTitle is empty
+            if (item.snippet.channelTitle) {
+                var author = "by " + item.snippet.channelTitle;
+            }
             results.push({
                 id: item.id.videoId,
                 title: item.snippet.title,
-                author: "by " + item.snippet.channelTitle,
+                author: author,
                 description: item.snippet.description,
                 thumbnail: item.snippet.thumbnails.default.url
             });
         });
-        return results.reverse();
+        return results
     };
 
-    var setCookie = function () {
-        // Find tomorrow's date.
-        var expireDate = new Date();
-        expireDate.setDate(expireDate.getDate() + 1);
-        $cookies.putObject('favorites', favorites, {expires: expireDate});
-    };
-
-    this.favoriteVideo = function (id, title, author, description, thumbnail) {
-        if (!((favorites) && (JSON.stringify(favorites).indexOf(id) > -1))) {
+    this.toggleFavorite = function (id, title, author, description, thumbnail) {
+        // if favorites exist and this is one of them, delete it
+        if ((favorites) && (JSON.stringify(favorites).indexOf(id) > -1)) {
+            var i;
+            for (i = favorites.length - 1; i >= 0; i -= 1) {
+                if (favorites[i].id === id) {
+                    favorites.splice(i, 1);
+                    break;
+                }
+            }
+            $log.info('Unfavorited id: ' + id + ', title:' + title);
+        // otherwise add favorite
+        } else {
             favorites.push({
                 id: id,
                 title: title,
@@ -113,20 +120,18 @@ app.service('VideosService', ['$cookies', '$window', '$log', function ($cookies,
                 description: description,
                 thumbnail: thumbnail
             });
-            setCookie();
-            return favorites;
+            $log.info('Favorited id: ' + id + ', title:' + title);
         }
+        // find tomorrow's date
+        var expireDate = new Date();
+        expireDate.setDate(expireDate.getDate() + 30);
+        // save favorites for 30 days
+        $cookies.putObject('favorites', favorites, {expires: expireDate});
+        return favorites;
     };
     
-    this.deleteVideo = function (id) {
-        var i;
-        for (i = favorites.length - 1; i >= 0; i -= 1) {
-            if (favorites[i].id === id) {
-                favorites.splice(i, 1);
-                break;
-            }
-        }
-        setCookie();
+    this.favStatus = function (id) {
+        return "sdhfg";
     };
 
     this.listComments = function (data) {
@@ -138,7 +143,7 @@ app.service('VideosService', ['$cookies', '$window', '$log', function ($cookies,
                 thumbnail: item.snippet.topLevelComment.snippet.authorProfileImageUrl
             });
         });
-        return comments.reverse();
+        return comments;
     };
 
     this.getYoutube = function () {
@@ -173,62 +178,7 @@ app.controller('VideosController', ['$scope', '$http', '$log', '$window', 'Video
     }
 
     init();
-
-    $scope.launch = function (id, title, author, description, thumbnail) {
-
-        // likes & dislikes
-        $http.get('https://www.googleapis.com/youtube/v3/videos', {
-            params: {
-                key: youtubeKey,
-                part: 'statistics',
-                id: id,
-                fields: 'items/statistics/likeCount,items/statistics/dislikeCount'
-            }
-        })
-            .then(function (result) {
-                $log.info(result.data);
-                function parseJSON() {
-                    return JSON.parse(JSON.stringify(result.data)).items[0].statistics;
-                }
-                var likes = parseJSON().likeCount;
-                var dislikes = parseJSON().dislikeCount;
-                VideosService.launchPlayer(id, title, author, description, likes, dislikes, thumbnail);
-                $log.info('Launched id:' + id + ' and title:' + title);
-                $scope.showPlayer = true;
-                // scroll to top of page
-                $window.scrollTo(0, 0);
-            });
-
-        // comments
-        $http.get('https://www.googleapis.com/youtube/v3/commentThreads', {
-            params: {
-                key: youtubeKey,
-                part: 'snippet',
-                videoId: id,
-                fields: 'items/snippet/topLevelComment/snippet/authorDisplayName,items/snippet/topLevelComment/snippet/textDisplay,items/snippet/topLevelComment/snippet/publishedAt,items/snippet/topLevelComment/snippet/authorProfileImageUrl'
-            }
-        })
-            .then(function (data) {
-                VideosService.listComments(data);
-            });
-
-    };
-
-    // favorites
-    $scope.favorite = function (id, title, author, description, thumbnail) {
-        VideosService.favoriteVideo(id, title, author, description, thumbnail);
-        $log.info('Favorited id:' + id + ' and title:' + title);
-    };
-
-    // delete favorites
-    $scope.delete = function (id) {
-        VideosService.deleteVideo(id);
-    };
-
-    // sort order
-    $scope.options = ['Relevance', 'Rating', 'Date'];
-    $scope.selectedOrder = $scope.options[0];
-
+    
     // location
     function initialize() {
         var input = document.getElementById('searchTextField');
@@ -268,7 +218,7 @@ app.controller('VideosController', ['$scope', '$http', '$log', '$window', 'Video
             .success(function (data) {
                 VideosService.listResults(data);
                 VideosService.loadPlayer(); // kill video, if loaded
-                $scope.showPlayer = false; // hide player
+                $scope.showPlayer = false;
                 $log.info(data);
             })
             .error(function () {
@@ -276,6 +226,61 @@ app.controller('VideosController', ['$scope', '$http', '$log', '$window', 'Video
             });
     };
 
-    // auto search
+    // search on page load
     $scope.search();
+
+    $scope.launch = function (id, title, author, description, thumbnail) {
+
+        // likes & dislikes
+        $http.get('https://www.googleapis.com/youtube/v3/videos', {
+            params: {
+                key: youtubeKey,
+                part: 'statistics',
+                id: id,
+                fields: 'items/statistics/likeCount,items/statistics/dislikeCount'
+            }
+        })
+            .then(function (result) {
+                $log.info(result.data);
+                function parseJSON() {
+                    return JSON.parse(JSON.stringify(result.data)).items[0].statistics;
+                }
+                var likes = parseJSON().likeCount;
+                var dislikes = parseJSON().dislikeCount;
+                VideosService.launchPlayer(id, title, author, description, likes, dislikes, thumbnail);
+                $scope.showPlayer = true;
+                // scroll to top of page
+                $window.scrollTo(0, 0);
+                $log.info('Playing id: ' + id + ', title:' + title);
+            });
+
+        // comments
+        $http.get('https://www.googleapis.com/youtube/v3/commentThreads', {
+            params: {
+                key: youtubeKey,
+                part: 'snippet',
+                videoId: id,
+                fields: 'items/snippet/topLevelComment/snippet/authorDisplayName,items/snippet/topLevelComment/snippet/textDisplay,items/snippet/topLevelComment/snippet/publishedAt,items/snippet/topLevelComment/snippet/authorProfileImageUrl'
+            }
+        })
+            .then(function (data) {
+                VideosService.listComments(data);
+            });
+
+    };
+
+    // favorites
+    $scope.toggleFavorite = function (id, title, author, description, thumbnail) {
+        VideosService.toggleFavorite(id, title, author, description, thumbnail);
+    };
+    
+    $scope.favStatus = function(id) {
+        if (JSON.stringify($scope.favorites).indexOf(id) > -1) {
+            return true;
+        }
+    };
+
+    // sort order
+    $scope.options = ['Relevance', 'Rating', 'Date'];
+    $scope.selectedOrder = $scope.options[0];
 }]);

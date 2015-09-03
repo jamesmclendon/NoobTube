@@ -27,9 +27,9 @@
 			
       <div class="row">
         <div class="col-xs-12">
-          <h1><a href="#">Noob<strong>Tube</strong></a></h1>
+          <h1>Noob<strong>Tube</strong></h1>
 					
-          <!-- SEARCH -->
+          <!-- SEARCH RESULTS -->
           <form class="form-inline" data-ng-submit="search(sortOrder);">
             <div class="form-group">
               <input type="text" class="form-control" placeholder="Search" data-ng-model="query">
@@ -69,8 +69,8 @@
               <span class="glyphicon glyphicon-thumbs-down"></span> {{ youtube.videoDislikes }}
             </p>
             <div class="btn-group">
-              <button type="button" class="btn btn-default btn-sm" data-ng-click="favorite(youtube.videoId, youtube.videoTitle, youtube.videoAuthor, youtube.videoDescription, youtube.videoThumbnail)"><span class="glyphicon glyphicon-star"></span> Add to Favorites</button>
-              <button type="button" class="btn btn-default btn-sm" data-ng-class="{'active' : toggleComments}"  data-ng-model="toggleComments" btn-checkbox btn-checkbox-true="1" btn-checkbox-false="0"><span class="glyphicon glyphicon-comment"></span> Comments</button>
+              <button type="button" class="btn btn-default btn-md glyphicon" data-ng-class="favStatus(youtube.videoId) ? 'glyphicon-heart' : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(youtube.videoId, youtube.videoTitle, youtube.videoAuthor, youtube.videoDescription, youtube.videoThumbnail)"></button>
+              <button type="button" class="btn btn-default btn-md glyphicon glyphicon-comment" data-ng-class="{'active' : toggleComments}"  data-ng-model="toggleComments" btn-checkbox btn-checkbox-true="1" btn-checkbox-false="0"></button>
             </div>
           </div>
         </div>
@@ -100,17 +100,19 @@
           <!-- RESULTS -->
           <div class="row">
             <ul class="media-list col-xs-12">
-              <li class="media" data-ng-repeat="video in results">
-                <div class="media-left" data-ng-click="launch(video.id, video.title, video.author, video.description, video.thumbnail)">
+              <li class="media" data-ng-repeat="video in results" data-ng-click="launch(video.id, video.title, video.author, video.description, video.thumbnail)">
+                <div class="media-left">
                   <a href="#">
                     <img class="media-object" data-ng-src="{{ video.thumbnail }}">
                   </a>
                 </div>
-                <div class="media-body" data-ng-click="launch(video.id, video.title, video.author, video.description, video.thumbnail)">
+                <div class="media-body">
                   <h5 class="media-heading">{{ video.title }}</h5>
                   <p class="text-muted"><small>{{ video.author }}</small></p>
-                  <p><button type="button" class="btn btn-default btn-xs" data-ng-click="favorite(video.id, video.title, video.author, video.description, video.thumbnail); $event.stopPropagation()">add to favorites</button></p>
                   <p class="hidden-xs">{{ video.description }}</p>
+                </div>
+                <div class="media-right media-middle">
+                  <button type="button" class="btn btn-default btn-sm glyphicon" data-ng-class="favStatus(video.id) ? 'glyphicon-heart' : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(video.id, video.title, video.author, video.description, video.thumbnail); $event.stopPropagation();"></button>
                 </div>
               </li>
             </ul>
@@ -121,17 +123,19 @@
         <tab heading="Favorites">				      
           <div class="row">
             <ul class="media-list">
-              <li class="media" data-ng-repeat="video in favorites track by $index">
-                <div class="media-left" data-ng-click="launch(video.id, video.title, video.author, video.description)">
+              <li class="media" data-ng-repeat="video in favorites" data-ng-click="launch(video.id, video.title, video.author, video.description)">
+                <div class="media-left">
                   <a href="#">
                     <img class="media-object" data-ng-src="{{ video.thumbnail }}">
                   </a>
                 </div>
-                <div class="media-body" data-ng-click="launch(video.id, video.title, video.author, video.description)">
+                <div class="media-body">
                   <h5 class="media-heading">{{ video.title }}</h5>
                   <p class="text-muted"><small>{{ video.author }}</small></p>
-                  <p><button type="button" class="btn btn-danger btn-xs" data-ng-click="delete(video.id); $event.stopPropagation()">remove</button></p>
                   <p class="hidden-xs">{{ video.description }}</p>
+                </div>
+                <div class="media-right media-middle">
+                  <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-remove"" : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(video.id, video.title); $event.stopPropagation();"></button>
                 </div>
               </li>
             </ul>
