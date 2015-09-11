@@ -5,15 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-
     <title>NoobTube</title>
-
-    <!-- Bootstrap core CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
     <link href="css/noobtube.css" rel="stylesheet">
-
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -22,126 +16,106 @@
 </head>
 
 <body data-ng-controller="VideosController">
-
-    <div class="container">
-		
+    
+    <div data-ng-class="showPlayer ? 'container-fluid' : 'container'">	
+        <!-- SEARCH -->
         <div class="row">
             <div class="col-xs-12">
-                <h1>Noob<strong>Tube</strong></h1>
-				
-                <!-- SEARCH -->
-                <form class="form-inline" data-ng-submit="search(sortOrder);">
+                <h1>Noob<strong>Tube</strong></h1>				
+                <form class="form-inline" data-ng-submit="search()">
                     <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Search" data-ng-model="query">
+                        <input id="query" type="text" class="form-control" placeholder="Search" data-ng-model="query" data-select-on-click>
                     </div>
                     <div class="form-group">
-                        <input id="searchTextField" class="form-control" type="text" placeholder="Location (optional)" autocomplete="on" runat="server" data-ng-model="location">  
-                        <input type="hidden" id="city2" name="city2">
-                        <input type="hidden" id="cityLat" name="cityLat">
-                        <input type="hidden" id="cityLng" name="cityLng">
+                        <input type="text" class="form-control" placeholder="Location (optional)" data-ng-autocomplete data-ng-model="locationResult" data-options="locationOptions" data-details="locationDetails" data-select-on-click>
                     </div>
                     <div class="form-group">
-                        <select class="form-control" data-ng-model="sortOrder" data-ng-options="opt for opt in options" data-ng-change="search(sortOrder)">
-                        </select>
+                        <select class="form-control" data-ng-model="sortOrder" data-ng-options="opt for opt in options"></select>
                     </div>
-                    <button type="submit" class="btn btn-primary">Search</button>
+                    <button id="search-button" type="submit" class="btn btn-primary">Search</button>
                 </form>
-				
             </div>
         </div>
 		
-        <!-- PLAYER -->
-        <div data-ng-show="showPlayer">
-            <div class="row">
-                <div class="col-xs-12">
-                    <div class="embed-responsive embed-responsive-16by9">
-                        <div id="videoPlayer" class="embed-responsive-item" src="..."></div>
-                    </div>
+        <div class="row">
+            <!-- PLAYER -->
+            <div id="player" class="col-xs-12 col-lg-8" data-ng-show="showPlayer">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <div id="videoPlayer" class="embed-responsive-item"></div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-xs-12">
-                    <h3>{{ youtube.videoTitle }}</h3>
-                    <p class="text-muted">{{ youtube.videoAuthor }}</p>
-                    <p>{{ youtube.videoDescription }}</p>
-                    <p>
-                        <span class="glyphicon glyphicon-thumbs-up"></span> {{ youtube.videoLikes }} / 
-                        <span class="glyphicon glyphicon-thumbs-down"></span> {{ youtube.videoDislikes }}
-                    </p>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-default btn-md glyphicon" data-ng-class="favStatus(youtube.videoId) ? 'glyphicon-heart' : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(youtube.videoId, youtube.videoTitle, youtube.videoAuthor, youtube.videoDescription, youtube.videoThumbnail)"></button>
-                        <button type="button" class="btn btn-default btn-md glyphicon glyphicon-comment" data-ng-class="{'active' : toggleComments}" data-ng-model="toggleComments" btn-checkbox btn-checkbox-true="1" btn-checkbox-false="0"></button>
-                    </div>
+                <h3>{{youtube.videoTitle}}</h3>
+                <p class="text-muted">{{youtube.videoAuthor}}</p>
+                <p>{{youtube.videoDescription}}</p>
+                <p>
+                    <span class="glyphicon glyphicon-thumbs-up"></span> {{youtube.videoLikes}} / 
+                    <span class="glyphicon glyphicon-thumbs-down"></span> {{youtube.videoDislikes}}
+                </p>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default btn-md glyphicon" data-ng-class="favStatus(youtube.videoId) ? 'glyphicon-heart' : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(youtube.videoId, youtube.videoTitle, youtube.videoAuthor, youtube.videoDescription, youtube.videoThumbnail)"></button>
+                    <button type="button" class="btn btn-default btn-md glyphicon glyphicon-comment" data-ng-class="{'active' : toggleComments }" data-ng-model="toggleComments" data-btn-checkbox data-btn-checkbox-true="1" data-btn-checkbox-false="0"></button>
                 </div>
-            </div>
-			
-            <!-- COMMENTS -->
-            <div class="row" data-ng-show="toggleComments">
-                <ul class="media-list">
-                    <li class="media" data-ng-repeat="comment in comments">
+                <!-- COMMENTS -->
+                <ul class="media-list" data-ng-show="toggleComments">
+                    <li class="media comment" data-ng-repeat="comment in comments">
                         <div class="media-left">
-                            <img class="media-object" data-ng-src="{{ comment.thumbnail }}">
+                            <img class="media-object" data-ng-src="{{comment.thumbnail}}" src="#" alt="video thumbnail">
                         </div>
                         <div class="media-body">
-                            <h5 class="media-heading">{{ comment.author }}</h5>
-                            <p class="text-muted"><small>{{ comment.published | date:"MM/dd/yyyy 'at' h:mma" }}</small></p>
+                            <h5 class="media-heading">{{comment.author}}</h5>
+                            <p class="text-muted small">{{comment.published | date:"MM/dd/yyyy 'at' h:mma"}}</p>
                             <p data-ng-bind-html="comment.content"></p>
                         </div>
                     </li>
                 </ul>
             </div>
+
+            <!-- TABS -->
+            <div id="tabs" class="col-xs-12" data-ng-class="{'col-lg-4' : showPlayer}">
+                <tabset>
+                    <!-- SEARCH RESULTS-->
+                    <tab heading="Search" id="search" active="active.search">
+                        <div class="row">
+                            <ul class="media-list">
+                                <li class="media" data-ng-repeat="video in results" data-ng-click="launch(video.id, video.title, video.author, video.description, video.thumbnail)">
+                                    <div class="media-left">
+                                        <img class="media-object" data-ng-src="{{video.thumbnail}}" src="#" alt="video thumbnail">
+                                    </div>
+                                    <div class="media-body">
+                                        <h5 class="media-heading">{{video.title}}</h5>
+                                        <p class="text-muted"><small>{{video.author}}</small></p>
+                                        <p class="hidden-xs" data-ng-class="{'hidden-lg' : showPlayer}">{{video.description}}</p>
+                                    </div>
+                                    <div class="media-right media-middle">
+                                        <button type="button" class="btn btn-default btn-sm glyphicon" data-ng-class="favStatus(video.id) ? 'glyphicon-heart' : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(video.id, video.title, video.author, video.description, video.thumbnail); $event.stopPropagation()"></button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </tab>
+                    <!-- FAVORITES -->
+                    <tab heading="Favorites">				      
+                        <div class="row">
+                            <ul class="media-list">
+                                <li class="media" data-ng-repeat="video in favorites" data-ng-click="launch(video.id, video.title, video.author, video.description, video.thumbnail)">
+                                    <div class="media-left">
+                                        <img class="media-object" data-ng-src="{{video.thumbnail}}" src="#" alt="video thumbnail">
+                                    </div>
+                                    <div class="media-body">
+                                        <h5 class="media-heading">{{video.title}}</h5>
+                                        <p class="text-muted small">{{video.author}}</p>
+                                        <p class="hidden-xs" data-ng-class="{'hidden-lg' : showPlayer}">{{video.description}}</p>
+                                    </div>
+                                    <div class="media-right media-middle">
+                                        <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-remove" data-ng-click="toggleFavorite(video.id, video.title); $event.stopPropagation()"></button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </tab>
+                </tabset>
+            </div>
+            
         </div>
-			
-        <!-- NAV TABS -->
-        <tabset id="results">
-
-            <!-- SEARCH RESULTS-->
-            <tab heading="Search" id="search" active="active.search">
-                <div class="row">
-                    <ul class="media-list col-xs-12">
-                        <li class="media" data-ng-repeat="video in results" data-ng-click="launch(video.id, video.title, video.author, video.description, video.thumbnail)">
-                            <div class="media-left">
-                                <a href="#">
-                                    <img class="media-object" data-ng-src="{{ video.thumbnail }}">
-                                </a>
-                            </div>
-                            <div class="media-body">
-                                <h5 class="media-heading">{{ video.title }}</h5>
-                                <p class="text-muted"><small>{{ video.author }}</small></p>
-                                <p class="hidden-xs">{{ video.description }}</p>
-                            </div>
-                            <div class="media-right media-middle">
-                                <button type="button" class="btn btn-default btn-sm glyphicon" data-ng-class="favStatus(video.id) ? 'glyphicon-heart' : 'glyphicon-heart-empty'" data-ng-click="toggleFavorite(video.id, video.title, video.author, video.description, video.thumbnail); $event.stopPropagation()"></button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </tab>
-				
-            <!-- FAVORITES -->
-            <tab heading="Favorites">				      
-                <div class="row">
-                    <ul class="media-list">
-                        <li class="media" data-ng-repeat="video in favorites" data-ng-click="launch(video.id, video.title, video.author, video.description)">
-                            <div class="media-left">
-                                <a href="#">
-                                    <img class="media-object" data-ng-src="{{ video.thumbnail }}">
-                                </a>
-                            </div>
-                            <div class="media-body">
-                                <h5 class="media-heading">{{ video.title }}</h5>
-                                <p class="text-muted"><small>{{ video.author }}</small></p>
-                                <p class="hidden-xs">{{ video.description }}</p>
-                            </div>
-                            <div class="media-right media-middle">
-                                <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-remove" data-ng-click="toggleFavorite(video.id, video.title); $event.stopPropagation()"></button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </tab>
-
-        </tabset>
 
     </div> <!-- /container -->
 
@@ -149,14 +123,15 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular-sanitize.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular-cookies.min.js"></script>
     <script src="//angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.13.0.min.js"></script>
-    <script src="//maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=places" type="text/javascript"></script>
+    <script src="//maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=places"></script>
     <script src="js/app.js"></script>
-    <script src="js/services.js"></script>
     <script src="js/controllers.js"></script>
+    <script src="js/directives.js"></script>
+    <script src="js/services.js"></script>
+    <script src="js/ngAutocomplete.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="//maxcdn.bootstrapcdn.com/js/ie10-viewport-bug-workaround.js"></script>
     
 </body>
 
 </html>
-

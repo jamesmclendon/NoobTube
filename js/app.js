@@ -1,4 +1,4 @@
-angular.module('NoobTubeApp', ['ui.bootstrap', 'ngSanitize', 'ngCookies', 'NoobTubeApp.controllers', 'NoobTubeApp.services'])
+angular.module('NoobTubeApp', ['ui.bootstrap', 'ngAutocomplete', 'ngSanitize', 'ngCookies', 'NoobTubeApp.controllers', 'NoobTubeApp.directives', 'NoobTubeApp.services'])
 
 // Run
 

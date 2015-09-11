@@ -1,18 +1,34 @@
-@media(max-width:767px){
-  .container input,
-  .container select {
-    font-size: 16px;
-  }
+[data-ng-click] { cursor: pointer; }
+
+.container { max-width: 768px; }
+
+select { text-transform: capitalize; }
+
+@media (min-width: 1200px) {
+    .container-fluid #tabs img.media-object { height: 70%; }
 }
 
-[data-ng-click] {
-  cursor: pointer;
-}
-#results .media:hover {
-  background-color: #eee;
-}
 .row {
-  padding-top: 1em;
-  padding-bottom: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
 }
+
+#player { margin-bottom: 1em; }
+
+@media (max-width: 767px) {
+    /* prevent zooming on input selection on iOS */
+    .form-control,
+    .btn { font-size: 16px; }
+    
+    /* btn-block styles for search button */
+    #search-button {
+        display: block;
+        width: 100%;
+    }
+}
+
+#tabs .media:hover { background-color: #eee; }
+
 .media { padding: 1em; }
+
+li.media.comment { padding-left: 0; }
